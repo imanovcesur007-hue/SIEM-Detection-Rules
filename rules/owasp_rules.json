@@ -1,0 +1,62 @@
+[
+  {
+    "name": "01_SQL_Injection_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | eval decoded=urldecode(_raw) | regex decoded=\"(?i)(UNION\\s+SELECT|1=1|--|/\\*)\" | stats count by src_ip, url | where count > 0"
+  },
+  {
+    "name": "02_Path_Traversal_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | eval decoded=urldecode(_raw) | regex decoded=\"(?i)(\\.\\./\\.\\.|/etc/passwd|\\\\windows\\\\system32)\" | stats count by src_ip, url | where count > 0"
+  },
+  {
+    "name": "03_SSRF_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | eval decoded=urldecode(_raw) | regex decoded=\"(?i)(localhost|127\\.0\\.0\\.1|169\\.254\\.169\\.254)\" | stats count by src_ip | where count > 0"
+  },
+  {
+    "name": "04_Command_Injection_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | eval decoded=urldecode(_raw) | regex decoded=\"(?i)(;|\\||`|\\$)\\s*(cat|ls|whoami|wget|curl)\" | stats count by src_ip, url | where count > 0"
+  },
+  {
+    "name": "05_Brute_Force_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" (status=401 OR status=403) | stats count by src_ip | where count > 5"
+  },
+  {
+    "name": "06_Vulnerability_Scanner_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | regex http_user_agent=\"(?i)(sqlmap|nikto|nmap|dirb|wpscan|masscan)\" | stats count by src_ip | where count > 0"
+  },
+  {
+    "name": "07_XSS_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | eval decoded=urldecode(_raw) | regex decoded=\"(?i)(<script>|javascript:|onerror=)\" | stats count by src_ip, url | where count > 0"
+  },
+  {
+    "name": "08_Sensitive_File_Discovery",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" status=200 | regex url=\"(?i)(\\.env|\\.git|\\.bak|config\\.php)\" | stats count by src_ip | where count > 0"
+  },
+  {
+    "name": "09_IDOR_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | regex url=\"(?i)(user_id=\\d+|account_id=\\d+)\" | stats dc(url) as unique_attempts by src_ip | where unique_attempts > 10"
+  },
+  {
+    "name": "10_Forceful_Browsing_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" status=404 | stats count by src_ip | where count > 20"
+  },
+  {
+    "name": "11_Web_Shell_Execution",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" status=200 | regex url=\"(?i)(cmd\\.php|shell\\.phtml|c99\\.php|b374k)\" | stats count by src_ip | where count > 0"
+  },
+  {
+    "name": "12_Malicious_File_Upload",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" method=POST | regex url=\"(?i)(\\.php|\\.exe|\\.sh|\\.jsp)\\s+HTTP\" | stats count by src_ip | where count > 0"
+  },
+  {
+    "name": "13_Data_Exfiltration_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | stats sum(bytes_out) as total_bytes by src_ip | where total_bytes > 5000000"
+  },
+  {
+    "name": "14_Log_Injection_CRLF",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | eval decoded=urldecode(_raw) | regex decoded=\"(?i)(%0d%0a|\\r\\n)\" | stats count by src_ip | where count > 0"
+  },
+  {
+    "name": "15_Automated_Bot_Detection",
+    "search": "index=web_logs sourcetype=\"docker:millibluesec\" | regex http_user_agent=\"(?i)(python-requests|curl|wget|go-http-client)\" | stats count by src_ip | where count > 0"
+  }
+]
